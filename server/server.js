@@ -12,12 +12,28 @@ const corsOptions = {
   origin: 'http://localhost:3000',
 };
 
-app.post('/getData', cors(corsOptions), async (req, res) => {
+app.post('/getLocationSearchData', cors(corsOptions), async (req, res) => {
   const fetchOptions = {
     method: 'GET',
   };
   const response = await fetch(
     `https://www.metaweather.com/api/location/search/?query=${req.body.query}`,
+    fetchOptions
+  );
+  try {
+    const jsonResponse = await response.json();
+    res.send(jsonResponse);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+app.post('/getLocationData', cors(corsOptions), async (req, res) => {
+  const fetchOptions = {
+    method: 'GET',
+  };
+  const response = await fetch(
+    `https://www.metaweather.com/api/location/${req.body.location}`,
     fetchOptions
   );
   try {

@@ -8,19 +8,25 @@ import Button from 'react-bootstrap/Button';
 import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl';
 import Table from 'react-bootstrap/Table';
+import Modalview from './components/modal';
 
 function App() {
   const [query, setQuery] = useState('');
   const [data, setData] = useState([]);
+  const [locationData, setLocationData] = useState([]);
   const [error, setError] = useState('');
+  const [modalShow, setModalShow] = useState(false);
 
-  // Location Search
-  const queryHandler = async () => {
-    const response = await fetch('http://localhost:5000/getData', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: query }),
-    });
+  // Location Search Method
+  const locationSearchHandler = async () => {
+    const response = await fetch(
+      'http://localhost:5000/getLocationSearchData',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: query }),
+      }
+    );
     try {
       setError('');
       const results = await response.json();
@@ -32,9 +38,26 @@ function App() {
     }
   };
 
+  // Location Method
+  const locationHandler = async (location) => {
+    const response = await fetch('http://localhost:5000/getLocationData', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ location: location }),
+    });
+    try {
+      setError('');
+      const locationResults = await response.json();
+      setLocationData(locationResults);
+      setModalShow(true);
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
   return (
     <div className="App">
-      <Container sm={12} md={6}>
+      <Container md={6}>
         <Col>
           <Row>
             <InputGroup className="mt-5 mb-5">
@@ -47,7 +70,7 @@ function App() {
               <Button
                 variant="outline-secondary"
                 id="button-addon2"
-                onClick={() => queryHandler()}
+                onClick={() => locationSearchHandler()}
               >
                 Search
               </Button>
@@ -65,16 +88,17 @@ function App() {
                       <th>Location</th>
                       <th>Type</th>
                       <th>Coordinates</th>
-                      <th>EarthID</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.map((location, index) => (
-                      <tr key={index}>
+                      <tr
+                        key={index}
+                        onClick={() => locationHandler(location.woeid)}
+                      >
                         <td>{location.title}</td>
                         <td>{location.location_type}</td>
                         <td>{location.latt_long}</td>
-                        <td>{location.woeid}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -85,6 +109,11 @@ function App() {
           </Row>
         </Col>
       </Container>
+      <Modalview
+        show={modalShow}
+        onHide={() => setModalShow(false)}
+        data={locationData}
+      />
     </div>
   );
 }
